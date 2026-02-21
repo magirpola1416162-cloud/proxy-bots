@@ -1,31 +1,96 @@
-def process_price_input(price_input):
-    try:
-        # Validate and convert BDT to USD
-        if price_input.endswith(' BDT'):
-            price_bdt = float(price_input.replace(' BDT', '').strip())
-            exchange_rate = get_exchange_rate()  # Placeholder for a function to get exchange rate
-            price_usd = price_bdt / exchange_rate
-            return price_usd
-        else:
-            return float(price_input)  # Assuming input is in USD
-    except ValueError:
-        raise ValueError('Invalid price input. Please enter a valid amount.')
+import sqlite3
+from telegram import Update, Bot
+from telegram.ext import Updater, CommandHandler, CallbackContext
+import requests
+import logging
+from decimal import Decimal
+
+# Initialize logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+
+# Database initialization functions
+def create_proxy_table(conn):
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS Proxies (
+        id INTEGER PRIMARY KEY,
+        proxy TEXT NOT NULL,
+        status TEXT NOT NULL
+    )' )
+    conn.commit()
 
 
-def add_price(update, context):
-    context.bot.send_message(chat_id=update.effective_chat.id, text='Please enter the price in BDT (e.g., 1000 BDT) or USD (e.g., 10.0):')
-    return "HANDLE_PRICE_INPUT"
+def create_payment_config_table(conn):
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS PaymentConfigs (
+        id INTEGER PRIMARY KEY,
+        payment_method TEXT NOT NULL,
+        config TEXT NOT NULL
+    )' )
+    conn.commit()
+
+# Telegram bot setup
+bot_token = 'YOUR_BOT_TOKEN_HERE'
+bot = Bot(token=bot_token)
+updater = Updater(token=bot_token, use_context=True)
+
+# Menu functions
+def start(update: Update, context: CallbackContext):
+    update.message.reply_text("Welcome to the Proxy Bot!")
 
 
-def handle_price_input(update, context):
-    price_input = update.message.text
-    price_usd = process_price_input(price_input)
-    exchange_rate = get_exchange_rate()
-    # Display formatted price with exchange rate
-    formatted_price = f'{price_usd:.2f} USD'
-    context.bot.send_message(chat_id=update.effective_chat.id, text=f'Price: {formatted_price} (based on an exchange rate of {exchange_rate:.2f} BDT/USD)')
-    context.bot.send_message(chat_id=update.effective_chat.id, text='Preview your input before confirmation:')
-    # Ask for confirmation
-    confirm_keyboard = [[InlineKeyboardButton('Confirm', callback_data='confirm_price')]]
-    reply_markup = InlineKeyboardMarkup(confirm_keyboard)
-    context.bot.send_message(chat_id=update.effective_chat.id, text='Do you want to confirm this price?', reply_markup=reply_markup)
+def admin_panel(update: Update, context: CallbackContext):
+    pass # Implement admin functionalities here
+
+# Deposit system
+def manual_payment(update: Update, context: CallbackContext):
+    pass # Implement manual payment logic
+
+
+def auto_payment(update: Update, context: CallbackContext):
+    pass # Implement automatic payment logic
+
+# Proxy management
+def manage_proxy(update: Update, context: CallbackContext):
+    pass # Implement proxy management logic
+
+# Price management
+def set_price(update: Update, context: CallbackContext):
+    pass # Implement price management logic with currency conversion
+
+# Broadcasting
+def broadcast(update: Update, context: CallbackContext):
+    pass # Implement broadcast messaging logic
+
+# Payment handling
+def approve_payment(update: Update, context: CallbackContext):
+    pass # Implement payment approval logic
+
+
+def reject_payment(update: Update, context: CallbackContext):
+    pass # Implement payment rejection logic
+
+# ZiniPay integration
+def zini_pay_integration():
+    pass # Implement ZiniPay integration
+
+# Error handling
+def error_handler(update: Update, context: CallbackContext):
+    logging.error(f"Update {update} caused error {context.error}")
+
+# Add handlers to the dispatcher
+updater.dispatcher.add_handler(CommandHandler("start", start))
+# Add other handlers...
+
+# Main function to set up the bot
+if __name__ == '__main__':
+    # Database connection
+    conn = sqlite3.connect('bot_database.db')
+    create_proxy_table(conn)
+    create_payment_config_table(conn)
+    
+    # Start the bot
+    updater.start_polling()
+    updater.idle()
